@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
+from django.urls import reverse
 
 
 class Author(models.Model):
@@ -33,7 +34,7 @@ class Post(models.Model):
     news = 'NW'
     SELECT_POST = [(article, 'Статья'), (news, 'Новость')]
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    post_type = models.CharField(max_length=2, choices=SELECT_POST, default=article)
+    post_type = models.CharField(max_length=2, choices=SELECT_POST, default=news)
     date_creation = models.DateTimeField(auto_now_add=True)
     post_category = models.ManyToManyField(Category, through='PostCategory')
     post_title = models.CharField(max_length=255)
@@ -55,6 +56,9 @@ class Post(models.Model):
 
     def __str__(self):
         return f'{self.post_title}: {self.post_text}'
+
+    def get_absolute_url(self):
+        return reverse('post_detail', args=[str(self.id)])
 
 
 class PostCategory(models.Model):
