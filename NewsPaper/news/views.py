@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from .filters import PostFilter
@@ -31,7 +31,7 @@ class PostDetail(DetailView):
 
 class PostSearch(ListView):
     model = Post
-    template_name = 'search.html'
+    template_name = 'post_search.html'
     context_object_name = 'posts'
     ordering = '-date_creation'
     paginate_by = 10
@@ -54,12 +54,46 @@ class PostCreate(CreateView):
     template_name = 'post_create.html'
     permission_required = ('posts.add_post')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = self.get_type()
+        return context
+
+    def form_valid(self, form):
+        post = form.save(commit=False)
+        if self.request.method == 'POST':
+            path_create = self.request.META['PATH_INFO']
+            if path_create == '/news/create/':
+                post.post_type = 'NW'
+            elif path_create == '/news/articles/create/':
+                post.post_type = 'AR'
+        post.save()
+        return super().form_valid(form)
+
+    def get_type(self):
+        path_type = self.request.META['PATH_INFO']
+        if path_type == '/news/create/':
+            return 'новость'
+        elif path_type == '/news/articles/create/':
+            return 'статью'
+
 
 class PostUpdate(UpdateView):
     form_class = PostForm
     model = Post
     template_name = 'post_edit.html'
     permission_required = ('posts.change_post')
+
+    def form_valid(self, form):
+        post = form.save(commit=False)
+        if self.request.method == 'POST':
+            path_edit = self.request.META['PATH_INFO']
+            if path_edit == f'/news/{post.pk}/edit/' and post.post_type != 'NW':
+                return redirect(self.request.META.get('HTTP_REFERER'))
+            elif path_edit == f'/news/articles/{post.pk}/edit/' and post.post_type != 'AR':
+                return redirect(self.request.META.get('HTTP_REFERER'))
+        post.save()
+        return super().form_valid(form)
 
 
 class PostDelete(DeleteView):
