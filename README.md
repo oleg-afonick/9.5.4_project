@@ -1,4 +1,5 @@
-![2022-12-30_214321](https://user-images.githubusercontent.com/108303572/210209749-6d59ed38-f25e-4341-92a8-eff16e118a07.jpg)
+![1](https://user-images.githubusercontent.com/108303572/210210830-43680b62-3c23-44e4-afeb-2e45d552ce6e.jpg)
+
 [Письмо для активации учетной записи](https://disk.yandex.ru/i/G01btBUpWoMl0Q)
 
 [Пиьмо с уведомлением о новой публикации](https://disk.yandex.ru/i/LVc2wuXR74WcBA)
