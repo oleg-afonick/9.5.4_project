@@ -1,10 +1,11 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from .filters import PostFilter
 from .forms import PostForm
-from .models import Post
+from .models import Post, Category, Author
 
 
 def home(request):
@@ -16,11 +17,12 @@ class PostsList(ListView):
     ordering = '-date_creation'
     template_name = 'posts.html'
     context_object_name = 'posts'
-    paginate_by = 10
+    paginate_by = 7
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['next_sale'] = None
+        context['post_detail'] = Post
         return context
 
 
@@ -35,7 +37,7 @@ class PostSearch(ListView):
     template_name = 'post_search.html'
     context_object_name = 'posts'
     ordering = '-date_creation'
-    paginate_by = 10
+    paginate_by = 7
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -53,7 +55,7 @@ class PostCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     form_class = PostForm
     model = Post
     template_name = 'post_create.html'
-    permission_required = ('news.add_post', )
+    permission_required = ('news.add_post',)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -68,6 +70,7 @@ class PostCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
                 post.post_type = 'NW'
             elif path_create == '/news/articles/create/':
                 post.post_type = 'AR'
+            form.instance.author = self.request.user.author
         post.save()
         return super().form_valid(form)
 
@@ -83,7 +86,7 @@ class PostUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     form_class = PostForm
     model = Post
     template_name = 'post_edit.html'
-    permission_required = ('news.change_post', )
+    permission_required = ('news.change_post',)
 
     def form_valid(self, form):
         post = form.save(commit=False)
@@ -101,4 +104,79 @@ class PostDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Post
     template_name = 'post_delete.html'
     success_url = reverse_lazy('post_list')
-    permission_required = ('news.delete_post', )
+    permission_required = ('news.delete_post',)
+
+
+class CategoryListView(ListView):
+    model = Post
+    template_name = 'category_list.html'
+    context_object_name = 'category_posts_list'
+    paginate_by = 10
+
+    def get_queryset(self):
+        self.post_category = get_object_or_404(Category, id=self.kwargs['pk'])
+        queryset = Post.objects.filter(post_category=self.post_category).order_by('-date_creation')
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_not_subscriber'] = self.request.user not in self.post_category.subscribers.all()
+        context['is_subscriber'] = self.request.user in self.post_category.subscribers.all()
+        context['category'] = self.post_category
+        return context
+
+
+@login_required
+def subscribe(request, pk):
+    user = request.user
+    category = Category.objects.get(id=pk)
+    category.subscribers.add(user)
+    return redirect(f'/news/categories/{category.pk}')
+
+
+@login_required
+def unsubscribe(request, pk):
+    user = request.user
+    category = Category.objects.get(id=pk)
+    category.subscribers.remove(user)
+    return redirect(f'/news/categories/{category.pk}')
+
+
+class AuthorsListView(ListView):
+    model = Post
+    template_name = 'authors_list.html'
+    context_object_name = 'authors_post_list'
+    paginate_by = 10
+
+    def get_queryset(self):
+        self.author = get_object_or_404(Author, id=self.kwargs['pk'])
+        queryset = Post.objects.filter(author=self.author).order_by('-date_creation')
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['author'] = self.author
+        return context
+
+
+class PostTypeListView(ListView):
+    model = Post
+    template_name = 'post_type.html'
+    context_object_name = 'post_type_list'
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = Post.objects.filter(post_type=self.get_type()[0]).order_by('-date_creation')
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['post_type'] = self.get_type()[1]
+        return context
+
+    def get_type(self):
+        path_type = self.request.META['PATH_INFO']
+        if path_type == '/news/type/NW':
+            return 'NW', 'Новость'
+        elif path_type == '/news/type/AR':
+            return 'AR', 'Статья'

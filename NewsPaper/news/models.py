@@ -24,6 +24,7 @@ class Author(models.Model):
 
 class Category(models.Model):
     category_name = models.CharField(max_length=25, unique=True)
+    subscribers = models.ManyToManyField(User, related_name='categories')
 
     def __str__(self):
         return self.category_name
@@ -32,8 +33,8 @@ class Category(models.Model):
 class Post(models.Model):
     article = 'AR'
     news = 'NW'
-    SELECT_POST = [(article, 'Статья'), (news, 'Новость')]
-    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+    SELECT_POST = [(article, 'статья'), (news, 'новость')]
+    author = models.ForeignKey(Author, editable=False, on_delete=models.CASCADE)
     post_type = models.CharField(max_length=2, choices=SELECT_POST, default=news)
     date_creation = models.DateTimeField(auto_now_add=True)
     post_category = models.ManyToManyField(Category, through='PostCategory')

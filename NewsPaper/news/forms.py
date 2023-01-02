@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from .models import Post
 
@@ -6,12 +7,10 @@ from .models import Post
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['author', 'post_title', 'post_text', 'post_type', 'post_category']
+        fields = ['post_title', 'post_text', 'post_category']
         labels = {
-            'author': 'Автор',
             'post_title': 'Заголовок',
             'post_text': 'Текст',
-            'post_type': 'Тип',
             'post_category': 'Категории',
         }
 
@@ -24,3 +23,5 @@ class PostForm(forms.ModelForm):
                 'post_text': 'Текст статьи не должен совпадать с заголовком'
             })
         return cleaned_data
+
+

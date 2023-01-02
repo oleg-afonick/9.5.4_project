@@ -1,18 +1,14 @@
 {% extends 'flatpages/default.html' %}
 {% load custom_filters %}
-{% load custom_tags %}
-
 {% block title %}
 Publications
 {% endblock title %}
 
 {% block content %}
 {% include 'input_output.html' %}
-<h1>Всего публикаций: {{ page_obj.paginator.count }}</h1>
-<!--<h3>{% current_time '%d %b %Y' %}</h3>-->
-<!--<h3> {{ next_sale|default_if_none:"Портал в стадии разработки!" }} </h3>-->
-&nbsp;
-{% if posts %}
+<h1>Всего публикаций типа "{{ post_type }}": {{ page_obj.paginator.count }}</h1>
+<br>
+{% if post_type_list %}
 <table style="border: 1px solid #afabab;">
     <tr style="border: 1px solid #afabab;">
         <td style="border: 1px solid #afabab;">&nbsp; ID &nbsp;</td>
@@ -23,11 +19,11 @@ Publications
         <td style="border: 1px solid #afabab;">Категории</td>
         <td style="border: 1px solid #afabab;">Текст</td>
     </tr>
-    {% for post in posts %}
+    {% for post in post_type_list %}
     <tr style="border: 1px solid #afabab;">
         <td style="border: 1px solid #afabab;">{{ post.pk }}</td>
-        <td style="border: 1px solid #afabab;">
-            <a href="{% url 'post_detail' post.pk %}">{{ post.post_title|censor }}</a>
+        <td style="border: 1px solid #afabab;"><a href="{% url 'post_detail' post.pk %}">
+            {{ post.post_title|censor }}</a>
             <br>
             {% if post.post_type == 'NW' %}
             {% if post.author == request.user.author %}
@@ -44,9 +40,8 @@ Publications
             {% endif %}
         </td>
         <td style="border: 1px solid #afabab;">{{ post.date_creation }}</td>
-        <td style="border: 1px solid #afabab;"><a href="{% url 'author_list' post.author.id %}">{{ post.author }}</a>
-        </td>
-        <td style="border: 1px solid #afabab;"><a href="{% url 'type_list' post.post_type %}">{{ post.get_post_type_display }}</a></td>
+        <td style="border: 1px solid #afabab;"><a href="{% url 'author_list' post.author.id %}">{{ post.author }}</a></td>
+        <td style="border: 1px solid #afabab;">{{ post.get_post_type_display }}</td>
         <td style="border: 1px solid #afabab;">
             {% for category in post.post_category.all %}
             <a href="{% url 'category_list' category.id %}">{{ category }}</a>
@@ -76,4 +71,5 @@ Publications
 <a href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
 {% endif %}
 {% endif %}
+
 {% endblock content %}
