@@ -1,4 +1,4 @@
-![1](https://user-images.githubusercontent.com/108303572/210210962-7452a5d4-7638-4a92-9da3-8db6b41e2daf.jpg)
+![1](https://user-images.githubusercontent.com/108303572/210212000-8a6d8d52-2112-4b4f-a36c-77c23af5b7e5.jpg)
 ***
 [Письмо для активации учетной записи](https://disk.yandex.ru/i/G01btBUpWoMl0Q)
 
